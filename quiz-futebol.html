@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Futebol Europeu</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #1F5233 0%, #0d2f1f 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #2c3e50;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 600px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  
+  .header {
+    background: linear-gradient(135deg, #1F5233 0%, #0d2f1f 100%);
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+  }
+  
+  .header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  
+  .header p {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    position: relative;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: #FFB81C;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  
+  .content {
+    padding: 40px 30px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .quiz-view {
+    display: none;
+  }
+  
+  .quiz-view.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .question-number {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  
+  .question-text {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1F5233;
+    margin-bottom: 30px;
+    line-height: 1.4;
+  }
+  
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .option {
+    padding: 16px 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 500;
+  }
+  
+  .option:hover {
+    border-color: #FFB81C;
+    background: rgba(255, 184, 28, 0.05);
+  }
+  
+  .option.selected {
+    border-color: #FFB81C;
+    background: #FFB81C;
+    color: white;
+  }
+  
+  .option.correct {
+    border-color: #27ae60;
+    background: #27ae60;
+    color: white;
+  }
+  
+  .option.incorrect {
+    border-color: #e74c3c;
+    background: #e74c3c;
+    color: white;
+  }
+  
+  .option.disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+  }
+  
+  .btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary {
+    background: #1F5233;
+    color: white;
+  }
+  
+  .btn-primary:hover:not(:disabled) {
+    background: #0d2f1f;
+  }
+  
+  .btn-primary:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+  }
+  
+  .btn-secondary {
+    background: white;
+    color: #1F5233;
+    border: 2px solid #1F5233;
+  }
+  
+  .btn-secondary:hover {
+    background: #f5f5f5;
+  }
+  
+  /* Results Screen */
+  .results-view {
+    display: none;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .results-view.active {
+    display: flex;
+  }
+  
+  .score-display {
+    margin-bottom: 30px;
+  }
+  
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1F5233 0%, #0d2f1f 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 700;
+    color: #FFB81C;
+  }
+  
+  .results-text h2 {
+    font-size: 24px;
+    color: #1F5233;
+    margin-bottom: 12px;
+  }
+  
+  .results-text p {
+    font-size: 16px;
+    color: #7f8c8d;
+    margin-bottom: 8px;
+  }
+  
+  .result-message {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFB81C;
+    margin-top: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .stats {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  .stat-item {
+    padding: 12px;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1F5233;
+  }
+  
+  .start-view {
+    display: none;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .start-view.active {
+    display: flex;
+  }
+  
+  .start-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+  }
+  
+  .start-view h2 {
+    font-size: 28px;
+    color: #1F5233;
+    margin-bottom: 15px;
+  }
+  
+  .start-view p {
+    font-size: 16px;
+    color: #7f8c8d;
+    margin-bottom: 30px;
+    line-height: 1.6;
+  }
+  
+  .info-box {
+    background: #f0f7ff;
+    border-left: 4px solid #1F5233;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: left;
+    margin-bottom: 30px;
+    font-size: 14px;
+    color: #2c3e50;
+  }
+  
+  @media (max-width: 480px) {
+    .content {
+      padding: 25px 20px;
+    }
+    
+    .question-text {
+      font-size: 18px;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+    }
+    
+    .option {
+      font-size: 15px;
+      padding: 14px 16px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>⚽ Quiz de Futebol Europeu</h1>
+    <p>Teste seus conhecimentos sobre as maiores competições da Europa</p>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+  
+  <div class="content">
+    <!-- Tela inicial -->
+    <div id="startView" class="start-view active">
+      <div class="start-icon">⚽</div>
+      <h2>Bem-vindo!</h2>
+      <p>Você está pronto para este desafio de futebol europeu?</p>
+      <div class="info-box">
+        <strong>📋 Sobre o quiz:</strong><br>
+        15 perguntas sobre as maiores competições, times e jogadores da Europa.<br><br>
+        <strong>⏱️ Tempo:</strong> Responda no seu ritmo<br>
+        <strong>⭐ Dificuldade:</strong> Moderada a difícil
+      </div>
+      <button class="btn btn-primary" onclick="startQuiz()" style="width: 100%;">Começar Quiz</button>
+    </div>
+    
+    <!-- Quiz -->
+    <div id="quizView" class="quiz-view">
+      <div>
+        <div class="question-number" id="questionNumber">Pergunta 1 de 15</div>
+        <div class="question-text" id="questionText">Carregando...</div>
+        <div class="options" id="optionsContainer"></div>
+      </div>
+      <div class="button-group">
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Próxima</button>
+      </div>
+    </div>
+    
+    <!-- Resultados -->
+    <div id="resultsView" class="results-view">
+      <div class="score-display">
+        <div class="score-circle" id="finalScore">0/15</div>
+        <div class="results-text">
+          <h2 id="resultTitle">Parabéns!</h2>
+          <p id="resultMessage">Aqui vai sua mensagem de resultado</p>
+          <div class="result-message" id="resultFeedback">Feedback</div>
+        </div>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-label">Acertos</div>
+          <div class="stat-value" id="correctCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Erros</div>
+          <div class="stat-value" id="wrongCount">0</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="restartQuiz()" style="width: 100%;">Tentar Novamente</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    question: "Qual time venceu a Champions League em 2023?",
+    options: ["Barcelona", "Manchester City", "Real Madrid", "Bayern Munique"],
+    correct: 2
+  },
+  {
+    question: "Qual é o estádio do Bayern Munique?",
+    options: ["Allianz Arena", "Allianz Stadium", "Munich Stadium", "Bavarian Stadium"],
+    correct: 0
+  },
+  {
+    question: "Quantas vezes Real Madrid venceu a Champions League?",
+    options: ["13", "14", "15", "16"],
+    correct: 1
+  },
+  {
+    question: "Qual é o maior clássico entre times de Madrid?",
+    options: ["El Tráfico", "El Derbi Madrileño", "Clássico de Madrid", "Derby Cívico"],
+    correct: 1
+  },
+  {
+    question: "Em qual ano Barcelona conquistou o 'triplete' (Liga, Copa e Champions)?",
+    options: ["2009", "2011", "2015", "2006"],
+    correct: 0
+  },
+  {
+    question: "Qual time ganhou a Champions League em 2022?",
+    options: ["Chelsea", "Paris Saint-Germain", "Real Madrid", "Liverpool"],
+    correct: 2
+  },
+  {
+    question: "Qual é o estádio do Liverpool?",
+    options: ["Old Trafford", "Stamford Bridge", "Anfield", "Etihad Stadium"],
+    correct: 2
+  },
+  {
+    question: "Quantas Ligas dos Campeões o Milan conquistou?",
+    options: ["5", "6", "7", "8"],
+    correct: 2
+  },
+  {
+    question: "Qual é o rival tradicional do Manchester United?",
+    options: ["Everton", "Manchester City", "Liverpool", "Chelsea"],
+    correct: 2
+  },
+  {
+    question: "Em qual país fica o PSG (Paris Saint-Germain)?",
+    options: ["Alemanha", "Itália", "França", "Espanha"],
+    correct: 2
+  },
+  {
+    question: "Qual time é conhecido como 'A Velha Senhora'?",
+    options: ["Inter de Milão", "Juventus", "Napoli", "Roma"],
+    correct: 1
+  },
+  {
+    question: "Quantos títulos da Premier League o Manchester United ganhou?",
+    options: ["18", "19", "20", "21"],
+    correct: 1
+  },
+  {
+    question: "Qual é o maior público de um estádio europeu?",
+    options: ["Nou Camp (Barcelona)", "Estádio de Wembley", "Allianz Arena", "San Siro"],
+    correct: 0
+  },
+  {
+    question: "Em qual ano Pelé jogou na Europa?",
+    options: ["Nunca jogou na Europa", "1992", "2000", "Pelé nasceu na Europa"],
+    correct: 0
+  },
+  {
+    question: "Qual time venceu a Série A Italiana em 2023?",
+    options: ["Juventus", "Inter de Milão", "AC Milan", "Napoli"],
+    correct: 1
+  }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let selectedAnswer = null;
+
+function startQuiz() {
+  document.getElementById('startView').classList.remove('active');
+  document.getElementById('quizView').classList.add('active');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const q = questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  
+  document.getElementById('progressFill').style.width = progress + '%';
+  document.getElementById('questionNumber').textContent = `Pergunta ${currentQuestion + 1} de ${questions.length}`;
+  document.getElementById('questionText').textContent = q.question;
+  
+  const optionsHtml = q.options.map((option, idx) => `
+    <div class="option" onclick="selectOption(${idx})" id="option-${idx}">
+      ${option}
+    </div>
+  `).join('');
+  
+  document.getElementById('optionsContainer').innerHTML = optionsHtml;
+  selectedAnswer = null;
+  document.getElementById('nextBtn').disabled = true;
+}
+
+function selectOption(idx) {
+  if (selectedAnswer !== null) return;
+  
+  selectedAnswer = idx;
+  const q = questions[currentQuestion];
+  const options = document.querySelectorAll('.option');
+  
+  options.forEach((opt, i) => {
+    opt.classList.add('disabled');
+    if (i === q.correct) {
+      opt.classList.add('correct');
+    }
+    if (i === idx && idx !== q.correct) {
+      opt.classList.add('incorrect');
+    }
+  });
+  
+  if (idx === q.correct) {
+    score++;
+  }
+  
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  
+  if (currentQuestion < questions.length) {
+    loadQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  document.getElementById('quizView').classList.remove('active');
+  document.getElementById('resultsView').classList.add('active');
+  document.getElementById('progressFill').style.width = '100%';
+  
+  const percentage = Math.round((score / questions.length) * 100);
+  const wrong = questions.length - score;
+  
+  document.getElementById('finalScore').textContent = `${score}/15`;
+  document.getElementById('correctCount').textContent = score;
+  document.getElementById('wrongCount').textContent = wrong;
+  
+  let title, message, feedback;
+  
+  if (percentage >= 90) {
+    title = "Excelente! 🏆";
+    message = "Você é um verdadeiro expert em futebol europeu!";
+    feedback = "Você domina o assunto!";
+  } else if (percentage >= 70) {
+    title = "Muito Bom! ⭐";
+    message = "Você tem um ótimo conhecimento sobre futebol europeu.";
+    feedback = "Continue acompanhando os clássicos!";
+  } else if (percentage >= 50) {
+    title = "Bom Resultado! 👍";
+    message = "Você sabe bastante, mas há espaço para melhorar.";
+    feedback = "Estude mais sobre a história do futebol europeu!";
+  } else {
+    title = "Tente Novamente 💪";
+    message = "Ainda há muito a aprender sobre futebol europeu.";
+    feedback = "Assista mais jogos e aprenda com eles!";
+  }
+  
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultMessage').textContent = message;
+  document.getElementById('resultFeedback').textContent = feedback;
+}
+
+function restartQuiz() {
+  currentQuestion = 0;
+  score = 0;
+  selectedAnswer = null;
+  
+  document.getElementById('resultsView').classList.remove('active');
+  document.getElementById('startView').classList.add('active');
+  document.getElementById('progressFill').style.width = '0%';
+}
+</script>
+
+</body>
+</html>
